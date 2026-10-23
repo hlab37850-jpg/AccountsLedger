@@ -332,9 +332,11 @@ fun EditAccountDialog(r: AccountRow, onSave: (String, String) -> Unit) {
     var name by remember { mutableStateOf(r.name) }
     var phone by remember { mutableStateOf(r.phone) }
     var err by remember { mutableStateOf<String?>(null) }
+    val pickForName = rememberContactPicker { n, p -> name = n; err = null; if (phone.isBlank()) phone = p }
+    val pickForPhone = rememberContactPicker { n, p -> phone = p; if (name.isBlank()) name = n }
     CardDialog("تعديل الحساب", onDismiss = { onSave(r.name, r.phone) }) {
-        FieldBox(name, { name = it; err = null }, "إسم الحساب", Icons.Filled.Person, error = err)
-        FieldBox(phone, { phone = it }, "رقم الهاتف", Icons.Filled.Phone, keyboard = KeyboardType.Phone)
+        FieldBox(name, { name = it; err = null }, "إسم الحساب", Icons.Filled.Person, error = err, onIconClick = { pickForName() })
+        FieldBox(phone, { phone = it }, "رقم الهاتف", Icons.Filled.Phone, keyboard = KeyboardType.Phone, onIconClick = { pickForPhone() })
         Button(onClick = { if (name.isBlank()) err = "لا يمكن ترك الحقل خالياً" else onSave(name.trim(), phone.trim()) }) { Text("حفظ") }
     }
 }
@@ -358,10 +360,13 @@ fun AddAccountDialog(vm: LedgerVM, prefs: Prefs, curs: List<Currency>, catId: Lo
     }
     var err by remember { mutableStateOf<String?>(null) }
     var pickCur by remember { mutableStateOf(false) }
+    var calc by remember { mutableStateOf(false) }
+    val pickForName = rememberContactPicker { n, p -> name = n; err = null; if (phone.isBlank()) phone = p }
+    val pickForPhone = rememberContactPicker { n, p -> phone = p; if (name.isBlank()) name = n }
 
     CardDialog("إضافة حساب جديد", onDismiss) {
-        FieldBox(name, { name = it; err = null }, "إسم الحساب", Icons.Filled.Person, error = err)
-        FieldBox(amount, { amount = it }, "المبلغ", Icons.Filled.Calculate, keyboard = KeyboardType.Decimal)
+        FieldBox(name, { name = it; err = null }, "إسم الحساب", Icons.Filled.Person, error = err, onIconClick = { pickForName() })
+        FieldBox(amount, { amount = it }, "المبلغ", Icons.Filled.Calculate, keyboard = KeyboardType.Decimal, onIconClick = { calc = true })
         if (prefs.b("showAmount", true) && num(amount) > 0) {
             Text(fmt(num(amount)), color = GreenDark, fontSize = 13.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         }
@@ -383,7 +388,7 @@ fun AddAccountDialog(vm: LedgerVM, prefs: Prefs, curs: List<Currency>, catId: Lo
         }
         ClickBox(date, Icons.Filled.DateRange, { pickDate(ctx, date) { date = it } })
         FieldBox(details, { details = it }, "التفاصيل", Icons.Filled.Description)
-        FieldBox(phone, { phone = it }, "رقم الهاتف", Icons.Filled.Phone, keyboard = KeyboardType.Phone)
+        FieldBox(phone, { phone = it }, "رقم الهاتف", Icons.Filled.Phone, keyboard = KeyboardType.Phone, onIconClick = { pickForPhone() })
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DebitCreditRadios(debit, dW, cW) { debit = it }
             Spacer(Modifier.weight(1f))
@@ -402,6 +407,7 @@ fun AddAccountDialog(vm: LedgerVM, prefs: Prefs, curs: List<Currency>, catId: Lo
             }) { Text("حفظ") }
         }
     }
+    if (calc) CalculatorDialog(amount, { amount = it; calc = false }, { calc = false })
     if (pickCur) {
         ChoiceDialog(
             "حدد نوع العملة", curs.map { it.name }, curs.indexOfFirst { it.id == curId },

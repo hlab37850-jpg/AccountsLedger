@@ -73,8 +73,9 @@ fun AddEntryDialog(vm: LedgerVM, prefs: Prefs, accountId: Long, onDismiss: () ->
         mutableStateOf(when (prefs.i("defMode", 0)) { 0 -> true; 1 -> false; else -> prefs.b("lastDebit", true) })
     }
     var err by remember { mutableStateOf<String?>(null) }
+    var calc by remember { mutableStateOf(false) }
     CardDialog("إضافة عملية", onDismiss) {
-        FieldBox(amount, { amount = it; err = null }, "المبلغ", Icons.Filled.Calculate, keyboard = KeyboardType.Decimal, error = err)
+        FieldBox(amount, { amount = it; err = null }, "المبلغ", Icons.Filled.Calculate, keyboard = KeyboardType.Decimal, error = err, onIconClick = { calc = true })
         ClickBox(date, Icons.Filled.DateRange, { pickDate(ctx, date) { date = it } })
         FieldBox(details, { details = it }, "التفاصيل", Icons.Filled.Description)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -92,6 +93,7 @@ fun AddEntryDialog(vm: LedgerVM, prefs: Prefs, accountId: Long, onDismiss: () ->
             }) { Text("حفظ") }
         }
     }
+    if (calc) CalculatorDialog(amount, { amount = it; err = null; calc = false }, { calc = false })
 }
 
 @Composable

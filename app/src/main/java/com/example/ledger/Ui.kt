@@ -95,11 +95,18 @@ fun FieldBox(
     modifier: Modifier = Modifier,
     keyboard: KeyboardType = KeyboardType.Text,
     error: String? = null,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    onIconClick: (() -> Unit)? = null
 ) {
     Column(modifier) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            if (icon != null) Icon(icon, null, tint = Green, modifier = Modifier.padding(end = 6.dp).size(22.dp))
+            if (icon != null) {
+                Icon(
+                    icon, null, tint = Green,
+                    modifier = Modifier.padding(end = 6.dp).size(30.dp).padding(2.dp)
+                        .then(if (onIconClick != null) Modifier.clickable { onIconClick() } else Modifier)
+                )
+            }
             TextField(
                 value = value, onValueChange = onChange, modifier = Modifier.weight(1f),
                 placeholder = { Text(hint, fontSize = 14.sp, color = Color.Gray) },
